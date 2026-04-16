@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f2040">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>LegalTime — Attorney Time Tracker</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --navy: #0f2040;
+  --navy2: #1a3660;
+  --gold: #c9a634;
+  --gold-light: #f5e9c8;
+  --bg: #eef1f8;
+  --card: #ffffff;
+  --text: #1a202c;
+  --muted: #718096;
+  --success: #38a169;
+  --danger: #e53e3e;
+  --border: #e2e8f0;
+  --warn: #dd6b20;
+}
+html, body { height: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100%;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--navy);
+  color: white;
+  padding: 13px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,.25);
+}
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--gold);
+  letter-spacing: -0.3px;
+}
+.header-logo small { color: rgba(255,255,255,.5); font-weight: 300; font-size: 12px; margin-left: 2px; }
+.header-right { display: flex; align-items: center; gap: 8px; }
+.timer-pill {
+  background: var(--gold);
+  color: var(--navy);
+  padding: 5px 11px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  display: none;
+  letter-spacing: 0.3px;
+}
+.icon-btn {
+  background: rgba(255,255,255,.12);
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 7px 9px;
+  border-radius: 9px;
+  line-height: 1;
+}
+.icon-btn:active { opacity: .7; }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  display: flex;
+  z-index: 100;
+  box-shadow: 0 -4px 16px rgba(0,0,0,.07);
+}
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px 13px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 10px;
+  gap: 3px;
+  font-weight: 500;
+}
+.nav-item.active { color: var(--navy); }
+.nav-item .ni { font-size: 21px; line-height: 1.2; }
+.nav-add .ni {
+  background: var(--navy);
+  color: white;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-top: -6px;
+  box-shadow: 0 3px 10px rgba(15,32,64,.35);
+}
+.nav-add.active .ni { background: var(--gold); color: var(--navy); }
+
+/* ── MAIN ── */
+.main { padding: 16px 15px 92px; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 15px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.07);
+}
+.card-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+  margin-bottom: 9px;
+}
+
+/* ── STATS ── */
+.stats-row { display: flex; gap: 9px; margin-bottom: 12px; }
+.stat-card {
+  flex: 1;
+  background: var(--card);
+  border-radius: 14px;
+  padding: 13px 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.07);
+  text-align: center;
+}
+.stat-value { font-size: 20px; font-weight: 800; color: var(--navy); line-height: 1.1; }
+.stat-label { font-size: 10px; color: var(--muted); margin-top: 3px; font-weight: 500; }
+
+/* ── TIMER DISPLAY ── */
+.timer-display { text-align: center; padding: 22px 0 10px; }
+.timer-clock {
+  font-size: 56px;
+  font-weight: 200;
+  color: var(--navy);
+  letter-spacing: 3px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.timer-sub { font-size: 13px; color: var(--muted); margin-top: 7px; }
+.timer-controls { display: flex; justify-content: center; gap: 14px; margin-top: 20px; }
+
+/* ── BUTTONS ── */
+.btn {
+  padding: 12px 20px;
+  border-radius: 11px;
+  border: none;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: transform .1s, opacity .1s;
+  letter-spacing: -0.2px;
+}
+.btn:active { transform: scale(.97); opacity: .88; }
+.btn-primary { background: var(--navy); color: white; }
+.btn-gold { background: var(--gold); color: var(--navy); }
+.btn-danger { background: var(--danger); color: white; }
+.btn-ghost { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
+.btn-success { background: var(--success); color: white; }
+.btn-block { width: 100%; margin-bottom: 10px; }
+.btn-lg { padding: 16px 24px; font-size: 17px; border-radius: 14px; }
+.btn-sm { padding: 8px 13px; font-size: 13px; border-radius: 8px; }
+.btn-circle {
+  width: 58px; height: 58px;
+  border-radius: 50%;
+  font-size: 22px;
+  padding: 0;
+}
+
+/* ── FORMS ── */
+.form-group { margin-bottom: 14px; }
+.form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.form-control {
+  width: 100%;
+  padding: 13px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 11px;
+  font-size: 15px;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-appearance: none;
+  appearance: none;
+  font-family: inherit;
+}
+textarea.form-control { resize: none; }
+.form-control:focus { outline: none; border-color: var(--navy); background: white; }
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 12px;
+  background: var(--bg);
+  border-radius: 11px;
+  margin-bottom: 14px;
+  border: 1.5px solid var(--border);
+}
+.toggle-label { font-size: 14px; font-weight: 600; }
+.toggle { position: relative; width: 46px; height: 27px; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: #cbd5e0;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: .2s;
+}
+.toggle-slider:before {
+  content: '';
+  position: absolute;
+  width: 21px; height: 21px;
+  left: 3px; top: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: .2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,.25);
+}
+.toggle input:checked + .toggle-slider { background: var(--success); }
+.toggle input:checked + .toggle-slider:before { transform: translateX(19px); }
+
+/* ── CHIPS ── */
+.chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.chip {
+  padding: 7px 13px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  transition: .15s;
+}
+.chip.selected { background: var(--navy); color: white; border-color: var(--navy); }
+
+/* ── ENTRY ITEMS ── */
+.entry-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.entry-item:last-child { border-bottom: none; }
+.entry-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+.entry-content { flex: 1; min-width: 0; }
+.entry-matter { font-size: 13px; font-weight: 700; color: var(--navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.entry-desc { font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.entry-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.entry-right { text-align: right; flex-shrink: 0; }
+.entry-duration { font-size: 14px; font-weight: 800; }
+.entry-value { font-size: 12px; color: var(--success); font-weight: 600; }
+.nb-tag {
+  display: inline-block;
+  padding: 2px 6px;
+  background: #fff3cd;
+  color: #856404;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+}
+.day-header {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  padding: 14px 0 5px;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  backdrop-filter: blur(2px);
+}
+.modal {
+  background: var(--card);
+  border-radius: 22px 22px 0 0;
+  padding: 8px 16px 36px;
+  width: 100%;
+  max-height: 92vh;
+  overflow-y: auto;
+  animation: slideUp .25s cubic-bezier(.32,1,.45,1);
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-handle {
+  width: 36px; height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 10px auto 16px;
+}
+.modal-title { font-size: 18px; font-weight: 800; margin-bottom: 16px; }
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align: center; padding: 44px 20px; color: var(--muted); }
+.empty-icon { font-size: 42px; margin-bottom: 10px; }
+.empty-text { font-size: 14px; line-height: 1.6; }
+
+/* ── MATTER BAR ── */
+.matter-bar { margin-bottom: 14px; }
+.matter-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+.matter-bar-track { height: 9px; background: var(--border); border-radius: 5px; overflow: hidden; }
+.matter-bar-fill { height: 100%; border-radius: 5px; transition: width .4s; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 96px;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: #1a202c;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 22px;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 400;
+  opacity: 0;
+  transition: opacity .25s, transform .25s;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── DARK HERO CARD ── */
+.hero-card {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy2) 100%);
+  color: white;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 16px rgba(15,32,64,.25);
+}
+
+/* ── ACTIVE TIMER CARD ── */
+.active-timer-card {
+  border-left: 4px solid var(--gold);
+  cursor: pointer;
+  background: linear-gradient(to right, #fffbee, white);
+}
+.active-timer-card:active { opacity: .9; }
+
+/* ── COLORS ── */
+.COLORS { --c: #667eea; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="header">
+    <div class="header-logo">⚖️ LegalTime <small>Pro</small></div>
+    <div class="header-right">
+      <div class="timer-pill" id="timerPill" onclick="navigate('timer')"></div>
+      <button class="icon-btn" onclick="showSettings()">⚙️</button>
+    </div>
+  </div>
+
+  <div class="main" id="mainContent"></div>
+
+  <div class="bottom-nav">
+    <button class="nav-item" id="nav-dashboard" onclick="navigate('dashboard')">
+      <span class="ni">🏠</span>Home
+    </button>
+    <button class="nav-item" id="nav-timer" onclick="navigate('timer')">
+      <span class="ni">⏱</span>Timer
+    </button>
+    <button class="nav-item nav-add" id="nav-add" onclick="navigate('add')">
+      <span class="ni">＋</span>Log
+    </button>
+    <button class="nav-item" id="nav-history" onclick="navigate('history')">
+      <span class="ni">📋</span>History
+    </button>
+    <button class="nav-item" id="nav-reports" onclick="navigate('reports')">
+      <span class="ni">📊</span>Reports
+    </button>
+  </div>
+
+  <div id="modalContainer"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+//  STATE & PERSISTENCE
+// ═══════════════════════════════════════
+const KEY = 'legaltime_v2';
+
+const defaultState = {
+  matters: [
+    { id: 'm_admin', name: 'General Admin', client: 'Internal', rate: 0, color: 7 }
+  ],
+  entries: [],
+  timer: {
+    active: false,
+    matterId: '',
+    startTime: null,
+    elapsed: 0,
+    description: '',
+    category: 'Research & Analysis',
+    billable: true
+  },
+  settings: {
+    reminderIntervalMinutes: 120,
+    defaultRate: 350,
+    currency: '$',
+    reminderEnabled: false,
+    firstRun: true
+  }
+};
+
+let state = JSON.parse(JSON.stringify(defaultState));
+let currentScreen = 'dashboard';
+
+function loadState() {
+  try {
+    const s = localStorage.getItem(KEY);
+    if (s) {
+      const parsed = JSON.parse(s);
+      state = Object.assign({}, defaultState, parsed);
+      state.settings = Object.assign({}, defaultState.settings, parsed.settings || {});
+      state.timer = Object.assign({}, defaultState.timer, parsed.timer || {});
+    }
+  } catch(e) {}
+}
+
+function saveState() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+// ═══════════════════════════════════════
+//  TIMER LOGIC
+// ═══════════════════════════════════════
+let _tick = null;
+
+function getElapsed() {
+  if (!state.timer.active) return state.timer.elapsed;
+  return state.timer.elapsed + (Date.now() - state.timer.startTime);
+}
+
+function fmt(ms) {
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sc = s % 60;
+  return `${pad(h)}:${pad(m)}:${pad(sc)}`;
+}
+
+function pad(n) { return String(n).padStart(2, '0'); }
+function fmtH(ms) { return (ms / 3600000).toFixed(1) + 'h'; }
+function round6(ms) { return Math.ceil(ms / 360000) * 360000; } // 6-min billing increments
+
+function startTimer(mId) {
+  if (!mId) { toast('Select a matter first'); return; }
+  state.timer.active = true;
+  state.timer.matterId = mId;
+  state.timer.startTime = Date.now();
+  saveState();
+  tick();
+  render();
+}
+
+function pauseTimer() {
+  state.timer.elapsed = getElapsed();
+  state.timer.active = false;
+  state.timer.startTime = null;
+  saveState();
+  stopTick();
+  render();
+}
+
+function resumeTimer() {
+  state.timer.active = true;
+  state.timer.startTime = Date.now();
+  saveState();
+  tick();
+  render();
+}
+
+function saveTimer() {
+  const ms = getElapsed();
+  if (ms < 1000) { toast('Too short to save'); resetTimer(); return; }
+  const rounded = round6(ms);
+  const hrs = rounded / 3600000;
+  const m = getMatter(state.timer.matterId);
+  const rate = state.timer.billable ? (m ? m.rate : state.settings.defaultRate) : 0;
+  addEntry({
+    matterId: state.timer.matterId,
+    description: state.timer.description || '(timer entry)',
+    category: state.timer.category,
+    date: today(),
+    hours: parseFloat(hrs.toFixed(2)),
+    billable: state.timer.billable,
+    rate,
+    value: parseFloat((hrs * rate).toFixed(2))
+  });
+  resetTimer();
+  toast(`✓ Saved ${fmtH(rounded)}`);
+  navigate('dashboard');
+}
+
+function resetTimer() {
+  state.timer = {
+    active: false,
+    matterId: state.timer.matterId,
+    startTime: null,
+    elapsed: 0,
+    description: '',
+    category: state.timer.category || 'Research & Analysis',
+    billable: true
+  };
+  stopTick();
+  saveState();
+}
+
+function tick() {
+  if (_tick) return;
+  _tick = setInterval(() => {
+    pill();
+    const clk = document.getElementById('timerClock');
+    if (clk) clk.textContent = fmt(getElapsed());
+    const dash = document.getElementById('dashTimerTime');
+    if (dash) dash.textContent = fmt(getElapsed());
+  }, 1000);
+}
+
+function stopTick() { if (_tick) { clearInterval(_tick); _tick = null; } }
+
+function pill() {
+  const p = document.getElementById('timerPill');
+  if (!p) return;
+  const ms = getElapsed();
+  if (ms > 0) {
+    p.style.display = 'block';
+    p.textContent = (state.timer.active ? '▶ ' : '⏸ ') + fmt(ms);
+  } else {
+    p.style.display = 'none';
+  }
+}
+
+// ═══════════════════════════════════════
+//  NOTIFICATIONS (2-hour reminders)
+// ═══════════════════════════════════════
+let _notifTimer = null;
+
+function requestReminders() {
+  if (!('Notification' in window)) { toast('Notifications not supported'); return; }
+  Notification.requestPermission().then(p => {
+    if (p === 'granted') {
+      state.settings.reminderEnabled = true;
+      saveState();
+      startReminders();
+      toast('✓ Reminders enabled!');
+    } else {
+      toast('Permission denied – enable in browser settings');
+    }
+  });
+}
+
+function startReminders() {
+  if (_notifTimer) clearInterval(_notifTimer);
+  const ms = state.settings.reminderIntervalMinutes * 60000;
+  _notifTimer = setInterval(fireReminder, ms);
+}
+
+function fireReminder() {
+  if (state.timer.active) return; // Already timing — no need
+  // Skip if entry logged in last 30 minutes
+  const recentMs = 30 * 60000;
+  const hasRecent = state.entries.some(e => (Date.now() - (e.createdAt || 0)) < recentMs);
+  if (hasRecent) return;
+  if (Notification.permission !== 'granted') return;
+  const n = new Notification('⚖️ Time Log Reminder', {
+    body: "Don't lose billable hours! Tap to log what you've been working on.",
+    tag: 'legaltime',
+    requireInteraction: true
+  });
+  n.onclick = () => { window.focus(); navigate('add'); n.close(); };
+}
+
+// ═══════════════════════════════════════
+//  ENTRIES
+// ═══════════════════════════════════════
+const CATS = [
+  'Research & Analysis',
+  'Drafting & Writing',
+  'Court / Hearing',
+  'Client Communication',
+  'Opposing Counsel',
+  'Document Review',
+  'Internal Meeting',
+  'Administrative'
+];
+
+function addEntry(data) {
+  const entry = {
+    id: 'e_' + Date.now(),
+    createdAt: Date.now(),
+    ...data
+  };
+  state.entries.unshift(entry);
+  state.entries.sort((a,b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt);
+  saveState();
+}
+
+function delEntry(id) {
+  state.entries = state.entries.filter(e => e.id !== id);
+  saveState();
+}
+
+function today() { return new Date().toISOString().slice(0, 10); }
+
+function todayEntries() { return state.entries.filter(e => e.date === today()); }
+
+function weekEntries() {
+  const d = new Date();
+  d.setDate(d.getDate() - d.getDay()); d.setHours(0,0,0,0);
+  return state.entries.filter(e => new Date(e.date + 'T12:00') >= d);
+}
+
+function monthEntries() {
+  const prefix = new Date().toISOString().slice(0, 7);
+  return state.entries.filter(e => e.date.startsWith(prefix));
+}
+
+function sum(arr, fn) { return arr.reduce((s, x) => s + fn(x), 0); }
+
+// ═══════════════════════════════════════
+//  MATTERS
+// ═══════════════════════════════════════
+const PALETTE = ['#667eea','#48bb78','#ed8936','#e53e3e','#9f7aea','#38b2ac','#c9a634','#fc8181'];
+
+function getMatter(id) { return state.matters.find(m => m.id === id); }
+function matterColor(m) { return PALETTE[m?.color ?? 0] || PALETTE[0]; }
+
+// ═══════════════════════════════════════
+//  FORMATTING
+// ═══════════════════════════════════════
+function money(v) {
+  return state.settings.currency + v.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function fmtDate(ds) {
+  const t = today();
+  const yd = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  if (ds === t) return 'Today';
+  if (ds === yd) return 'Yesterday';
+  return new Date(ds + 'T12:00').toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+}
+
+// ═══════════════════════════════════════
+//  SCREENS
+// ═══════════════════════════════════════
+
+// ── DASHBOARD ──
+function renderDashboard() {
+  const te = todayEntries();
+  const tHrs = sum(te, e => e.hours);
+  const tBill = sum(te.filter(e=>e.billable), e => e.hours);
+  const tVal = sum(te.filter(e=>e.billable), e => e.value);
+
+  const we = weekEntries();
+  const wHrs = sum(we, e => e.hours);
+  const wVal = sum(we.filter(e=>e.billable), e => e.value);
+
+  const dateStr = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+
+  let activeCard = '';
+  if (getElapsed() > 0) {
+    const m = getMatter(state.timer.matterId);
+    activeCard = `
+      <div class="card active-timer-card" onclick="navigate('timer')">
+        <div class="card-title">⏱ Active Timer</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-weight:800;font-size:16px">${m?.name || 'No matter'}</div>
+            <div style="color:var(--muted);font-size:12px">${m?.client || ''}</div>
+            <div style="color:var(--muted);font-size:11px;margin-top:2px">${state.timer.description || 'No description'}</div>
+          </div>
+          <div style="text-align:right">
+            <div id="dashTimerTime" style="font-size:26px;font-weight:200;color:var(--navy);font-variant-numeric:tabular-nums">${fmt(getElapsed())}</div>
+            <div style="font-size:11px;color:${state.timer.active ? 'var(--success)':'var(--warn)'};font-weight:700">${state.timer.active ? '▶ RUNNING':'⏸ PAUSED'}</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  const recentHtml = te.length === 0
+    ? `<div class="empty-state" style="padding:24px 10px"><div class="empty-icon">📝</div><div class="empty-text">No entries today yet.<br>Start a timer or log time.</div></div>`
+    : te.slice(0,5).map(e => entryRow(e)).join('');
+
+  return `
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;color:var(--muted);font-weight:500">${dateStr}</div>
+      <div style="font-size:21px;font-weight:800">Dashboard</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-value">${tHrs.toFixed(1)}h</div>
+        <div class="stat-label">Today Total</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${tBill.toFixed(1)}h</div>
+        <div class="stat-label">Billable</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${money(tVal)}</div>
+        <div class="stat-label">Today Value</div>
+      </div>
+    </div>
+
+    <div class="hero-card">
+      <div style="font-size:10px;opacity:.6;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">This Week</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end">
+        <div>
+          <span style="font-size:30px;font-weight:200">${wHrs.toFixed(1)}</span>
+          <span style="font-size:13px;opacity:.6"> hours logged</span>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:22px;font-weight:800;color:var(--gold)">${money(wVal)}</div>
+          <div style="font-size:10px;opacity:.5">billable value</div>
+        </div>
+      </div>
+    </div>
+
+    ${activeCard}
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div class="card-title" style="margin:0">Today's Entries</div>
+        ${te.length > 0 ? `<button class="btn btn-ghost btn-sm" onclick="navigate('history')" style="font-size:11px;padding:5px 10px">See all</button>` : ''}
+      </div>
+      ${recentHtml}
+    </div>
+
+    <div style="display:flex;gap:9px">
+      <button class="btn btn-primary btn-block" onclick="navigate('timer')" style="flex:1">⏱ Start Timer</button>
+      <button class="btn btn-gold btn-block" onclick="navigate('add')" style="flex:1">+ Log Entry</button>
+    </div>`;
+}
+
+// ── TIMER ──
+function renderTimer() {
+  const elapsed = getElapsed();
+  const rounded = round6(elapsed);
+  const m = getMatter(state.timer.matterId);
+
+  const matterOpts = state.matters.map(mt =>
+    `<option value="${mt.id}" ${state.timer.matterId===mt.id?'selected':''}>${mt.name} – ${mt.client}</option>`
+  ).join('');
+
+  const catChips = CATS.map(c =>
+    `<div class="chip ${state.timer.category===c?'selected':''}" onclick="timerCat('${c}')">${c}</div>`
+  ).join('');
+
+  const isRunning = state.timer.active;
+  const hasElapsed = elapsed > 0;
+
+  const controls = !hasElapsed
+    ? `<button class="btn btn-primary btn-circle btn-lg" onclick="timerStart()" style="width:66px;height:66px;font-size:26px">▶</button>`
+    : isRunning
+      ? `<button class="btn btn-ghost btn-circle" onclick="pauseTimer()" title="Pause">⏸</button>
+         <button class="btn btn-success btn-circle" onclick="confirmSave()" title="Save &amp; Stop">■</button>`
+      : `<button class="btn btn-primary btn-circle" onclick="resumeTimer()" title="Resume">▶</button>
+         <button class="btn btn-success btn-circle" onclick="confirmSave()" title="Save">■</button>
+         <button class="btn btn-ghost btn-circle" onclick="confirmDiscard()" style="font-size:16px" title="Discard">🗑</button>`;
+
+  return `
+    <div style="font-size:21px;font-weight:800;margin-bottom:14px">Timer</div>
+
+    <div class="card">
+      <div class="timer-display">
+        <div id="timerClock" class="timer-clock">${fmt(elapsed)}</div>
+        <div class="timer-sub">${m ? m.name : 'Select a matter below to start'}</div>
+        ${hasElapsed ? `<div style="font-size:12px;color:var(--muted);margin-top:4px">≈ ${fmtH(rounded)} billed (6-min rounding)</div>` : ''}
+      </div>
+      <div class="timer-controls">${controls}</div>
+    </div>
+
+    <div class="card">
+      <div class="form-group">
+        <label class="form-label">Matter / Client</label>
+        <select class="form-control" onchange="state.timer.matterId=this.value;saveState()">
+          <option value="">— Select matter —</option>
+          ${matterOpts}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <input class="form-control" type="text" placeholder="What are you working on?" value="${escHtml(state.timer.description)}" oninput="state.timer.description=this.value;saveState()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Activity Type</label>
+        <div class="chips">${catChips}</div>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">💰 Billable</span>
+        <label class="toggle">
+          <input type="checkbox" ${state.timer.billable?'checked':''} onchange="state.timer.billable=this.checked;saveState()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+    <button class="btn btn-ghost btn-block" onclick="openAddMatter()">+ Add New Matter</button>`;
+}
+
+// ── ADD ENTRY ──
+function renderAdd() {
+  const matterOpts = state.matters.map(m =>
+    `<option value="${m.id}">${m.name} – ${m.client}</option>`
+  ).join('');
+  const catOpts = CATS.map(c => `<option>${c}</option>`).join('');
+
+  return `
+    <div style="font-size:21px;font-weight:800;margin-bottom:14px">Log Time Entry</div>
+    <div class="card">
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input type="date" class="form-control" id="eDate" value="${today()}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Matter / Client</label>
+        <select class="form-control" id="eMatter">
+          <option value="">— Select matter —</option>
+          ${matterOpts}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Duration (decimal hours — e.g. 1.5 = 1h 30m)</label>
+        <input type="number" class="form-control" id="eHours" placeholder="0.0" step="0.1" min="0.1" max="24">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description of Work</label>
+        <textarea class="form-control" id="eDesc" rows="3" placeholder="Describe the work performed in detail..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Activity Type</label>
+        <select class="form-control" id="eCat">${catOpts}</select>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">💰 Billable</span>
+        <label class="toggle">
+          <input type="checkbox" id="eBillable" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <button class="btn btn-primary btn-block btn-lg" onclick="submitEntry()">Save Entry</button>
+    </div>
+    <button class="btn btn-ghost btn-block" onclick="openAddMatter()">+ Add New Matter</button>`;
+}
+
+// ── HISTORY ──
+function renderHistory() {
+  if (state.entries.length === 0) {
+    return `<div style="font-size:21px;font-weight:800;margin-bottom:14px">History</div>
+      <div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No entries yet.<br>Start logging your time!</div></div>`;
+  }
+
+  const grouped = {};
+  state.entries.forEach(e => {
+    if (!grouped[e.date]) grouped[e.date] = [];
+    grouped[e.date].push(e);
+  });
+
+  const html = Object.keys(grouped).sort((a,b)=>b.localeCompare(a)).map(d => {
+    const dEntries = grouped[d];
+    const dH = sum(dEntries, e=>e.hours);
+    const dV = sum(dEntries.filter(e=>e.billable), e=>e.value);
+    return `
+      <div class="day-header"><span>${fmtDate(d)}</span><span>${dH.toFixed(1)}h · ${money(dV)}</span></div>
+      <div class="card" style="padding:4px 12px">${dEntries.map(e=>entryRow(e)).join('')}</div>`;
+  }).join('');
+
+  return `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-size:21px;font-weight:800">History</div>
+      <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ CSV</button>
+    </div>
+    ${html}`;
+}
+
+// ── REPORTS ──
+function renderReports() {
+  const we = weekEntries(), me = monthEntries();
+  const wH = sum(we,e=>e.hours), wV=sum(we.filter(e=>e.billable),e=>e.value);
+  const mH = sum(me,e=>e.hours), mV=sum(me.filter(e=>e.billable),e=>e.value);
+  const mBH = sum(me.filter(e=>e.billable),e=>e.hours);
+
+  // Per-matter bars
+  const matterTotals = {};
+  me.forEach(e => {
+    if (!matterTotals[e.matterId]) matterTotals[e.matterId] = {h:0,v:0};
+    matterTotals[e.matterId].h += e.hours;
+    matterTotals[e.matterId].v += e.value;
+  });
+  const maxH = Math.max(...Object.values(matterTotals).map(x=>x.h), 0.1);
+  const matterBars = Object.entries(matterTotals).sort((a,b)=>b[1].h-a[1].h).map(([mid,d])=>{
+    const m = getMatter(mid);
+    return `<div class="matter-bar">
+      <div class="matter-bar-label">
+        <span>${m?.name||'Unknown'}</span>
+        <span style="color:var(--muted)">${d.h.toFixed(1)}h · ${money(d.v)}</span>
+      </div>
+      <div class="matter-bar-track">
+        <div class="matter-bar-fill" style="width:${(d.h/maxH*100).toFixed(0)}%;background:${matterColor(m)}"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Category breakdown
+  const catTot = {};
+  me.forEach(e => { catTot[e.category] = (catTot[e.category]||0)+e.hours; });
+  const catRows = Object.entries(catTot).sort((a,b)=>b[1]-a[1]).map(([c,h])=>
+    `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <span>${c}</span><span style="font-weight:700">${h.toFixed(1)}h</span>
+    </div>`
+  ).join('');
+
+  const util = mH > 0 ? ((mBH/mH)*100).toFixed(0) : 0;
+
+  return `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-size:21px;font-weight:800">Reports</div>
+      <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ Export</button>
+    </div>
+
+    <div class="hero-card">
+      <div style="font-size:10px;opacity:.6;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">This Week</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end">
+        <div><span style="font-size:28px;font-weight:200">${wH.toFixed(1)}</span><span style="opacity:.6;font-size:13px"> hrs</span></div>
+        <div style="text-align:right"><div style="font-size:22px;font-weight:800;color:var(--gold)">${money(wV)}</div><div style="font-size:10px;opacity:.5">billable</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">This Month</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+        <div class="stat-card" style="flex:1;min-width:80px"><div class="stat-value">${mH.toFixed(1)}h</div><div class="stat-label">Total</div></div>
+        <div class="stat-card" style="flex:1;min-width:80px"><div class="stat-value">${mBH.toFixed(1)}h</div><div class="stat-label">Billable</div></div>
+        <div class="stat-card" style="flex:1;min-width:80px"><div class="stat-value">${util}%</div><div class="stat-label">Util Rate</div></div>
+        <div class="stat-card" style="flex:1;min-width:80px"><div class="stat-value" style="color:var(--success)">${money(mV)}</div><div class="stat-label">Value</div></div>
+      </div>
+      ${matterBars || '<div style="color:var(--muted);font-size:13px;text-align:center;padding:10px 0">No data yet</div>'}
+    </div>
+
+    ${catRows ? `<div class="card"><div class="card-title">By Activity Type</div>${catRows}</div>` : ''}
+
+    <button class="btn btn-primary btn-block" onclick="exportCSV()">⬇ Export Full CSV Report</button>`;
+}
+
+// ─── ENTRY ROW ───
+function entryRow(e) {
+  const m = getMatter(e.matterId);
+  return `<div class="entry-item" onclick="showEntry('${e.id}')">
+    <div class="entry-dot" style="background:${matterColor(m)}"></div>
+    <div class="entry-content">
+      <div class="entry-matter">${m?.name||'Unknown'}</div>
+      <div class="entry-desc">${escHtml(e.description)}</div>
+      <div class="entry-meta">${e.category}</div>
+    </div>
+    <div class="entry-right">
+      <div class="entry-duration">${e.hours.toFixed(1)}h</div>
+      ${e.billable ? `<div class="entry-value">${money(e.value)}</div>` : '<div class="nb-tag">N/B</div>'}
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+//  MODALS
+// ═══════════════════════════════════════
+function openModal(html) {
+  document.getElementById('modalContainer').innerHTML = `
+    <div class="modal-overlay" id="overlay" onclick="if(event.target.id==='overlay')closeModal()">
+      <div class="modal">
+        <div class="modal-handle"></div>
+        ${html}
+      </div>
+    </div>`;
+}
+
+function closeModal() { document.getElementById('modalContainer').innerHTML = ''; }
+
+function showEntry(id) {
+  const e = state.entries.find(x=>x.id===id);
+  if (!e) return;
+  const m = getMatter(e.matterId);
+  openModal(`
+    <div class="modal-title">Time Entry</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="width:13px;height:13px;border-radius:50%;background:${matterColor(m)};flex-shrink:0"></div>
+      <div><div style="font-weight:800">${m?.name||'Unknown'}</div><div style="font-size:12px;color:var(--muted)">${m?.client||''}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px">
+      <div class="stat-card"><div class="stat-value">${e.hours.toFixed(2)}h</div><div class="stat-label">Duration</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--success)">${e.billable?money(e.value):'N/B'}</div><div class="stat-label">${e.billable?'Value':'Non-Billable'}</div></div>
+    </div>
+    <div style="font-size:13px;padding:8px 0;border-bottom:1px solid var(--border)"><strong>Date:</strong> ${fmtDate(e.date)}</div>
+    <div style="font-size:13px;padding:8px 0;border-bottom:1px solid var(--border)"><strong>Category:</strong> ${e.category}</div>
+    <div style="font-size:13px;padding:8px 0;border-bottom:1px solid var(--border)"><strong>Description:</strong> ${escHtml(e.description)}</div>
+    ${e.billable?`<div style="font-size:13px;padding:8px 0;color:var(--muted)">Rate: ${state.settings.currency}${e.rate}/hr</div>`:''}
+    <div style="margin-top:16px">
+      <button class="btn btn-danger btn-block" onclick="delEntry('${id}');closeModal();render();toast('Entry deleted')">🗑 Delete Entry</button>
+      <button class="btn btn-ghost btn-block" onclick="closeModal()">Close</button>
+    </div>`);
+}
+
+function confirmSave() {
+  const ms = getElapsed();
+  const r = round6(ms);
+  const m = getMatter(state.timer.matterId);
+  openModal(`
+    <div class="modal-title">Save Timer?</div>
+    <div style="text-align:center;padding:16px 0">
+      <div style="font-size:44px;font-weight:200;color:var(--navy)">${fmt(ms)}</div>
+      <div style="color:var(--muted);margin-top:6px">Rounds to <strong>${fmtH(r)}</strong> (6-min billing increments)</div>
+      ${m?`<div style="font-weight:700;margin-top:8px;font-size:15px">${m.name}</div>`:''}
+    </div>
+    <button class="btn btn-success btn-block btn-lg" onclick="closeModal();saveTimer()">✓ Save ${fmtH(r)}</button>
+    <button class="btn btn-ghost btn-block" onclick="closeModal()">Keep Running</button>`);
+}
+
+function confirmDiscard() {
+  openModal(`
+    <div class="modal-title">Discard Timer?</div>
+    <div style="color:var(--muted);margin-bottom:18px;font-size:14px">This will permanently delete the current timer without saving any entry.</div>
+    <button class="btn btn-danger btn-block" onclick="closeModal();resetTimer();render();toast('Timer discarded')">Discard Timer</button>
+    <button class="btn btn-ghost btn-block" onclick="closeModal()">Cancel</button>`);
+}
+
+function openAddMatter() {
+  openModal(`
+    <div class="modal-title">Add Matter</div>
+    <div class="form-group">
+      <label class="form-label">Matter / Case Name</label>
+      <input class="form-control" id="mName" placeholder="e.g. Smith v. Jones — Contract Dispute">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Client Name</label>
+      <input class="form-control" id="mClient" placeholder="e.g. John Smith">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Hourly Rate (${state.settings.currency})</label>
+      <input type="number" class="form-control" id="mRate" value="${state.settings.defaultRate}" min="0">
+    </div>
+    <button class="btn btn-primary btn-block btn-lg" onclick="submitMatter()">Add Matter</button>
+    <button class="btn btn-ghost btn-block" onclick="closeModal()">Cancel</button>`);
+}
+
+function submitMatter() {
+  const name = document.getElementById('mName').value.trim();
+  const client = document.getElementById('mClient').value.trim();
+  const rate = parseFloat(document.getElementById('mRate').value) || 0;
+  if (!name) { toast('Enter a matter name'); return; }
+  state.matters.push({
+    id: 'm_'+Date.now(), name, client, rate,
+    color: state.matters.length % PALETTE.length
+  });
+  saveState();
+  closeModal();
+  toast('✓ Matter added');
+  render();
+}
+
+function showSettings() {
+  const intOpts = [30,60,90,120,180,240].map(v =>
+    `<option value="${v}" ${state.settings.reminderIntervalMinutes===v?'selected':''}>${v<60?v+' min':(v/60).toFixed(1).replace('.0','')+' hr'}</option>`
+  ).join('');
+
+  const mattersHtml = state.matters.map(m => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:14px;font-weight:700">${m.name}</div>
+        <div style="font-size:12px;color:var(--muted)">${m.client} · ${state.settings.currency}${m.rate}/hr</div>
+      </div>
+      <button style="background:none;border:none;color:var(--danger);font-size:20px;cursor:pointer;padding:4px" onclick="delMatter('${m.id}')">🗑</button>
+    </div>`).join('');
+
+  openModal(`
+    <div class="modal-title">⚙️ Settings</div>
+
+    <div class="form-group">
+      <label class="form-label">Reminder Interval</label>
+      <select class="form-control" id="sInterval">${intOpts}</select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Default Hourly Rate (${state.settings.currency})</label>
+      <input type="number" class="form-control" id="sRate" value="${state.settings.defaultRate}" min="0">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Currency Symbol</label>
+      <input class="form-control" id="sCur" value="${state.settings.currency}" maxlength="3" style="width:80px">
+    </div>
+
+    <button class="btn btn-gold btn-block" onclick="requestReminders()">🔔 Enable Reminders</button>
+    <button class="btn btn-primary btn-block" onclick="saveSettings()">Save Settings</button>
+
+    <div style="margin-top:20px">
+      <div class="card-title">Your Matters (${state.matters.length})</div>
+      ${mattersHtml}
+      <button class="btn btn-ghost btn-block" style="margin-top:10px" onclick="closeModal();openAddMatter()">+ Add Matter</button>
+    </div>
+
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+      <button class="btn btn-ghost btn-block" style="color:var(--danger)" onclick="clearData()">⚠️ Clear All Data</button>
+    </div>`);
+}
+
+function saveSettings() {
+  state.settings.reminderIntervalMinutes = parseInt(document.getElementById('sInterval').value);
+  state.settings.defaultRate = parseFloat(document.getElementById('sRate').value)||350;
+  state.settings.currency = document.getElementById('sCur').value||'$';
+  saveState();
+  if (Notification.permission==='granted') { clearInterval(_notifTimer); _notifTimer=null; startReminders(); }
+  closeModal();
+  toast('✓ Settings saved');
+  render();
+}
+
+function delMatter(id) {
+  if (state.matters.length <= 1) { toast('Need at least one matter'); return; }
+  if (!confirm('Delete this matter?')) return;
+  state.matters = state.matters.filter(m => m.id!==id);
+  saveState();
+  closeModal();
+  showSettings();
+}
+
+function clearData() {
+  if (!confirm('Delete ALL entries, matters, and timer? This cannot be undone.')) return;
+  state.entries = [];
+  state.matters = defaultState.matters.map(m=>({...m}));
+  resetTimer();
+  closeModal();
+  toast('Data cleared');
+  render();
+}
+
+// ═══════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════
+function timerStart() {
+  const sel = document.querySelector('#mainContent select');
+  if (sel) state.timer.matterId = sel.value;
+  const inp = document.querySelector('#mainContent input[type=text]');
+  if (inp) state.timer.description = inp.value;
+  startTimer(state.timer.matterId);
+}
+
+function timerCat(c) { state.timer.category = c; saveState(); render(); }
+
+function submitEntry() {
+  const mId = document.getElementById('eMatter').value;
+  const hrs = parseFloat(document.getElementById('eHours').value);
+  const desc = document.getElementById('eDesc').value.trim();
+  const cat = document.getElementById('eCat').value;
+  const date = document.getElementById('eDate').value;
+  const billable = document.getElementById('eBillable').checked;
+
+  if (!mId) { toast('Select a matter'); return; }
+  if (!hrs || hrs<=0) { toast('Enter a valid duration'); return; }
+
+  const m = getMatter(mId);
+  const rate = billable ? (m?.rate||state.settings.defaultRate) : 0;
+  addEntry({
+    matterId: mId,
+    description: desc||'(manual entry)',
+    category: cat,
+    date,
+    hours: parseFloat(hrs.toFixed(2)),
+    billable,
+    rate,
+    value: parseFloat((hrs*rate).toFixed(2))
+  });
+  toast(`✓ Logged ${hrs.toFixed(1)}h`);
+  navigate('history');
+}
+
+function exportCSV() {
+  const header = 'Date,Matter,Client,Category,Description,Hours,Billable,Rate,Value\n';
+  const rows = state.entries.map(e => {
+    const m = getMatter(e.matterId);
+    return [
+      e.date, `"${m?.name||''}"`, `"${m?.client||''}"`,
+      `"${e.category}"`, `"${(e.description||'').replace(/"/g,'""')}"`,
+      e.hours.toFixed(2), e.billable?'Yes':'No', e.rate.toFixed(2), e.value.toFixed(2)
+    ].join(',');
+  });
+  const csv = header + rows.join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = `legaltime_${today()}.csv`;
+  a.click();
+  toast('✓ CSV exported');
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ═══════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════
+let _toastT;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  if (_toastT) clearTimeout(_toastT);
+  _toastT = setTimeout(()=>el.classList.remove('show'), 2800);
+}
+
+// ═══════════════════════════════════════
+//  NAVIGATION & RENDER
+// ═══════════════════════════════════════
+function navigate(screen) {
+  currentScreen = screen;
+  render();
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  const el = document.getElementById('nav-'+screen);
+  if (el) el.classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function render() {
+  const el = document.getElementById('mainContent');
+  switch(currentScreen) {
+    case 'dashboard': el.innerHTML = renderDashboard(); break;
+    case 'timer':     el.innerHTML = renderTimer(); break;
+    case 'add':       el.innerHTML = renderAdd(); break;
+    case 'history':   el.innerHTML = renderHistory(); break;
+    case 'reports':   el.innerHTML = renderReports(); break;
+  }
+  pill();
+}
+
+// ═══════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════
+function init() {
+  loadState();
+  navigate('dashboard');
+
+  if (state.timer.active || state.timer.elapsed > 0) tick();
+
+  if (Notification.permission==='granted' && state.settings.reminderEnabled) {
+    startReminders();
+  }
+
+  // First-run: ask to enable reminders
+  if (state.settings.firstRun) {
+    state.settings.firstRun = false;
+    saveState();
+    setTimeout(() => {
+      openModal(`
+        <div style="text-align:center;padding:10px 0 4px">
+          <div style="font-size:38px;margin-bottom:8px">⚖️</div>
+          <div class="modal-title" style="text-align:center">Welcome to LegalTime</div>
+        </div>
+        <div style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:18px;text-align:center">
+          Your personal attorney time tracker with 6-minute billing increments, matter management, and smart reminders.
+        </div>
+        <button class="btn btn-gold btn-block btn-lg" onclick="closeModal();requestReminders()">🔔 Enable ${state.settings.reminderIntervalMinutes}-min Reminders</button>
+        <button class="btn btn-primary btn-block" onclick="closeModal();openAddMatter()">+ Add Your First Matter</button>
+        <button class="btn btn-ghost btn-block" onclick="closeModal()">Explore First</button>`);
+    }, 600);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
